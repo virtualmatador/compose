@@ -15,10 +15,9 @@
 class compose
 {
 public:
-    compose(const std::filesystem::path& pipe_path,
-        const std::chrono::milliseconds& nap_time);
+    compose(const std::filesystem::path& pipe_path);
     ~compose();
-    void run();
+    void run(const std::chrono::milliseconds& nap_time);
     void add_reloader(const std::shared_ptr<std::function<void()>>& reloader);
     void add_ticker(const std::shared_ptr<std::function<void()>>& ticker,
         const std::chrono::milliseconds& interval);
@@ -30,7 +29,6 @@ public:
     void request_stop();
 private:
     std::filesystem::path pipe_path_;
-    const std::chrono::milliseconds nap_time_;
     std::vector<std::weak_ptr<std::function<void()>>> reloaders_;
     std::vector<std::pair<std::weak_ptr<std::function<void()>>,
         std::array<std::chrono::milliseconds, 2>>> tickers_;

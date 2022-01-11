@@ -29,10 +29,8 @@ void compose::handle_signal(int signal)
     }
 }
 
-compose::compose(const std::filesystem::path& pipe_path,
-        const std::chrono::milliseconds& nap_time)
-    : nap_time_{ nap_time }
-    , pipe_path_{ pipe_path }
+compose::compose(const std::filesystem::path& pipe_path)
+    : pipe_path_{ pipe_path }
 {
     reload_ = false;
     stop_ = false;
@@ -82,7 +80,7 @@ void compose::request_stop()
     stop_ = true;
 }
 
-void compose::run()
+void compose::run(const std::chrono::milliseconds& nap_time)
 {
     std::unique_ptr<int, void(*)(int*)> descriptor{ nullptr, [](int* fd)
     {
@@ -134,7 +132,7 @@ void compose::run()
         {
             if (auto active_ticker = it->first.lock())
             {
-                it->second[0] += nap_time_;
+                it->second[0] += nap_time;
                 if (it->second[0] >= it->second[1])
                 {
                     it->second[0] = std::chrono::milliseconds(0);
@@ -180,7 +178,7 @@ void compose::run()
                 pipe_json.clear();
             }
         }
-        std::this_thread::sleep_for(nap_time_);
+        std::this_thread::sleep_for(nap_time);
     }
     if (!pipe_path_.empty())
     {

@@ -12,7 +12,7 @@
 bool t01()
 {
     std::size_t reloads = 0;
-    compose the_compose { "", std::chrono::seconds(0) };
+    compose the_compose { "" };
     the_compose.request_reload();
     auto reloader = std::make_shared<std::function<void()>>([&]()
     {
@@ -20,7 +20,7 @@ bool t01()
         the_compose.request_stop();
     });
     the_compose.add_reloader(reloader);
-    the_compose.run();
+    the_compose.run(std::chrono::seconds(0));
     if (reloads != 1)
     {
         return false;
@@ -31,7 +31,7 @@ bool t01()
 bool t02()
 {
     std::size_t reloads = 0;
-    compose the_compose("", std::chrono::seconds(0));
+    compose the_compose("");
     auto ticker = std::make_shared<std::function<void()>>([&]()
     {
         reloads += 2;
@@ -47,7 +47,7 @@ bool t02()
     });
     the_compose.add_reloader(reloader);
     the_compose.add_ticker(ticker, std::chrono::milliseconds(0));
-    the_compose.run();
+    the_compose.run(std::chrono::seconds(0));
     if (reloads != 8)
     {
         return false;
@@ -59,7 +59,7 @@ bool t03()
 {
     std::size_t handles = 0;
     std::size_t ticks = 0;
-    compose the_compose("./test.pipe", std::chrono::seconds(0));
+    compose the_compose("./test.pipe");
     auto ticker = std::make_shared<std::function<void()>>([&]()
     {
         if (ticks++ == 0)
@@ -80,7 +80,7 @@ bool t03()
     });
     the_compose.add_handler("test", handler);
     the_compose.add_ticker(ticker, std::chrono::milliseconds(0));
-    the_compose.run();
+    the_compose.run(std::chrono::seconds(0));
     if (handles != 1)
     {
         return false;
@@ -92,7 +92,7 @@ bool t04()
 {
     std::size_t handles = 0;
     std::size_t ticks = 0;
-    compose the_compose("./test.pipe", std::chrono::milliseconds(1));
+    compose the_compose("./test.pipe");
     auto ticker = std::make_shared<std::function<void()>>([&]()
     {
         if (ticks++ == 0)
@@ -121,7 +121,7 @@ bool t04()
     the_compose.add_handler("test", handler);
     the_compose.add_ticker(ticker, std::chrono::milliseconds(10));
     the_compose.add_reloader(reloader);
-    the_compose.run();
+    the_compose.run(std::chrono::milliseconds(1));
     if (handles != 1)
     {
         return false;
