@@ -23,6 +23,7 @@ void compose::handle_signal(int signal)
     case SIGHUP:
         reload_ = true;
         break;
+    case SIGINT:
     case SIGTERM:
         stop_ = true;
         break;
@@ -35,6 +36,7 @@ compose::compose(const std::filesystem::path& pipe_path)
     reload_ = false;
     stop_ = false;
     signal(SIGHUP, handle_signal);
+    signal(SIGINT, handle_signal);
     signal(SIGTERM, handle_signal);
 }
 
