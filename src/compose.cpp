@@ -153,14 +153,14 @@ void compose::run(const std::chrono::milliseconds& nap_time)
             (*pipe) >> pipe_json;
             if (pipe_json.completed())
             {
-                if (pipe_json.get_type() == jsonio::JsonType::J_OBJECT)
+                if (pipe_json.type() == jsonio::JsonType::J_OBJECT)
                 {
-                    auto command = pipe_json.get_value("command");
-                    auto payload = pipe_json.get_value("payload");
+                    auto command = pipe_json.at("command");
+                    auto payload = pipe_json.at("payload");
                     if (command &&
-                        command->get_type() == jsonio::JsonType::J_STRING &&
+                        command->type() == jsonio::JsonType::J_STRING &&
                         payload &&
-                        payload->get_type() == jsonio::JsonType::J_OBJECT)
+                        payload->type() == jsonio::JsonType::J_OBJECT)
                     {
                         auto callbacks = handlers_[command->get_string()];
                         for (auto it = callbacks.begin(); it != callbacks.end();)
