@@ -69,7 +69,7 @@ bool t03()
                 "{\"data\": \"some data\"}}" << std::endl;
         }
     });
-    auto handler = std::make_shared<std::function<void(const jsonio::json&)>>(
+    auto handler = std::make_shared<std::function<void(jsonio::json&&)>>(
         [&](auto payload)
     {
         if (payload["data"].get_string() == "some data")
@@ -109,7 +109,7 @@ bool t04()
                 "{\"data\": \"reload\"}}" << std::endl;
         }
     });
-    auto handler = std::make_shared<std::function<void(const jsonio::json&)>>(
+    auto handler = std::make_shared<std::function<void(jsonio::json&&)>>(
         [&](auto payload)
     {
         if (payload["data"].get_string() == "reload")

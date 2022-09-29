@@ -57,7 +57,7 @@ void compose::add_ticker(const std::shared_ptr<std::function<void()>>& ticker,
 }
 
 void compose::add_handler(const std::string& command,
-    const std::shared_ptr<std::function<void(const jsonio::json&)>>& handler)
+    const std::shared_ptr<std::function<void(jsonio::json&&)>>& handler)
 {
     handlers_[command].emplace_back(handler);
 }
@@ -111,7 +111,7 @@ void compose::run(const std::chrono::milliseconds& nap_time)
             *descriptor, std::ios_base::in);
         pipe = std::make_unique<decltype(pipe)::element_type>(file_buf.get());
     }
-    jsonio::json pipe_json;
+    jsonio::json_obj pipe_json;
     while (!stop_)
     {
         if (reload_)
@@ -153,31 +153,28 @@ void compose::run(const std::chrono::milliseconds& nap_time)
             (*pipe) >> pipe_json;
             if (pipe_json.completed())
             {
-                if (pipe_json.type() == jsonio::JsonType::J_OBJECT)
+                auto command = pipe_json.at("command");
+                auto payload = pipe_json.at("payload");
+                if (command &&
+                    command->type() == jsonio::JsonType::J_STRING &&
+                    payload &&
+                    payload->type() == jsonio::JsonType::J_OBJECT)
                 {
-                    auto command = pipe_json.at("command");
-                    auto payload = pipe_json.at("payload");
-                    if (command &&
-                        command->type() == jsonio::JsonType::J_STRING &&
-                        payload &&
-                        payload->type() == jsonio::JsonType::J_OBJECT)
+                    auto callbacks = handlers_[command->get_string()];
+                    for (auto it = callbacks.begin(); it != callbacks.end();)
                     {
-                        auto callbacks = handlers_[command->get_string()];
-                        for (auto it = callbacks.begin(); it != callbacks.end();)
+                        if (auto active_callback = it->lock())
                         {
-                            if (auto active_callback = it->lock())
-                            {
-                                (*active_callback)(*payload);
-                                ++it;
-                            }
-                            else
-                            {
-                                it = callbacks.erase(it);
-                            }
+                            (*active_callback)(std::move(*payload));
+                            ++it;
+                        }
+                        else
+                        {
+                            it = callbacks.erase(it);
                         }
                     }
                 }
-                pipe_json.clear();
+                pipe_json = jsonio::json_obj{};
             }
         }
         std::this_thread::sleep_for(nap_time);

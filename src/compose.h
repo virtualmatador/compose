@@ -22,7 +22,7 @@ public:
     void add_ticker(const std::shared_ptr<std::function<void()>>& ticker,
         const std::chrono::milliseconds& interval);
     void add_handler(const std::string& command, const std::shared_ptr<
-        std::function<void(const jsonio::json&)>>& handler);
+        std::function<void(jsonio::json&&)>>& handler);
     bool need_reload() const;
     bool need_stop() const;
     void request_reload();
@@ -33,7 +33,7 @@ private:
     std::vector<std::pair<std::weak_ptr<std::function<void()>>,
         std::array<std::chrono::milliseconds, 2>>> tickers_;
     std::map<std::string, std::vector<std::weak_ptr<
-        std::function<void(const jsonio::json&)>>>> handlers_;
+        std::function<void(jsonio::json&&)>>>> handlers_;
 
 private:
     static std::atomic<bool> reload_;
