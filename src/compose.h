@@ -5,6 +5,7 @@
 #include <chrono>
 #include <filesystem>
 #include <functional>
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
@@ -18,11 +19,13 @@ public:
     compose(const std::filesystem::path& pipe_path);
     ~compose();
     void run(const std::chrono::milliseconds& nap_time);
-    void add_reloader(const std::shared_ptr<std::function<void()>>& reloader);
-    void add_ticker(const std::shared_ptr<std::function<void()>>& ticker,
+    void add_reloader(std::weak_ptr<std::function<void()>>&& reloader);
+    void add_ticker(std::weak_ptr<std::function<void()>>&& ticker,
         const std::chrono::milliseconds& interval);
-    void add_handler(const std::string& command, const std::shared_ptr<
-        std::function<void(jsonio::json&&)>>& handler);
+    void add_runner(std::weak_ptr<std::function<void()>>&& runner,
+        const std::chrono::milliseconds& timeout);
+    void add_handler(const std::string& command, std::weak_ptr<
+        std::function<void(jsonio::json&&)>>&& handler);
     bool need_reload() const;
     bool need_stop() const;
     void request_reload();
@@ -32,6 +35,8 @@ private:
     std::vector<std::weak_ptr<std::function<void()>>> reloaders_;
     std::vector<std::pair<std::weak_ptr<std::function<void()>>,
         std::array<std::chrono::milliseconds, 2>>> tickers_;
+    std::list<std::pair<std::weak_ptr<std::function<void()>>,
+        std::array<std::chrono::milliseconds, 2>>> runners_;
     std::map<std::string, std::vector<std::weak_ptr<
         std::function<void(jsonio::json&&)>>>> handlers_;
 

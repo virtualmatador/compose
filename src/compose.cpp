@@ -44,22 +44,29 @@ compose::~compose()
 {
 }
 
-void compose::add_reloader(
-    const std::shared_ptr<std::function<void()>>& reloader)
+void compose::add_reloader(std::weak_ptr<std::function<void()>>&& reloader)
 {
-    reloaders_.emplace_back(reloader);
+    reloaders_.emplace_back(std::move(reloader));
 }
 
-void compose::add_ticker(const std::shared_ptr<std::function<void()>>& ticker,
+void compose::add_ticker(std::weak_ptr<std::function<void()>>&& ticker,
     const std::chrono::milliseconds& interval)
 {
-    tickers_.push_back({ ticker, { std::chrono::milliseconds(0), interval } });
+    tickers_.emplace_back(std::move(ticker),
+        std::array{ std::chrono::milliseconds(0), interval} );
+}
+
+void compose::add_runner(std::weak_ptr<std::function<void()>>&& runner,
+    const std::chrono::milliseconds& timeout)
+{
+    runners_.emplace_back(std::move(runner),
+        std::array{ std::chrono::milliseconds(0), timeout });
 }
 
 void compose::add_handler(const std::string& command,
-    const std::shared_ptr<std::function<void(jsonio::json&&)>>& handler)
+    std::weak_ptr<std::function<void(jsonio::json&&)>>&& handler)
 {
-    handlers_[command].emplace_back(handler);
+    handlers_[command].emplace_back(std::move(handler));
 }
 
 bool compose::need_reload() const
@@ -145,6 +152,26 @@ void compose::run(const std::chrono::milliseconds& nap_time)
             else
             {
                 it = tickers_.erase(it);
+            }
+        }
+        for (auto it = runners_.begin(); it != runners_.end();)
+        {
+            if (auto active_runner = it->first.lock())
+            {
+                it->second[0] += nap_time;
+                if (it->second[0] >= it->second[1])
+                {
+                    it = runners_.erase(it);
+                    (*active_runner)();
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+            else
+            {
+                it = runners_.erase(it);
             }
         }
         if (pipe.get())

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 add_library("compose" STATIC "compose.cpp")
-set_property(TARGET "compose" PROPERTY CXX_STANDARD 17)
+set_property(TARGET "compose" PROPERTY CXX_STANDARD 20)
 target_include_directories("compose" INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries("compose" PUBLIC "jsonio")
