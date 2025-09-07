@@ -37,14 +37,15 @@ compose::compose(const std::filesystem::path &pipe_path)
 
 compose::~compose() {}
 
-void compose::add_reloader(std::weak_ptr<std::function<void()>> &&reloader) {
-  reloaders_.emplace_back(std::move(reloader));
-}
-
-void compose::add_ticker(std::weak_ptr<std::function<void()>> &&ticker,
-                         const std::chrono::milliseconds &interval) {
+std::size_t compose::add_ticker(std::weak_ptr<std::function<void()>> &&ticker,
+                                const std::chrono::milliseconds &interval) {
   tickers_.emplace_back(std::move(ticker),
                         std::array{std::chrono::milliseconds(0), interval});
+  return tickers_.size() - 1;
+}
+
+void compose::add_reloader(std::weak_ptr<std::function<void()>> &&reloader) {
+  reloaders_.emplace_back(std::move(reloader));
 }
 
 void compose::add_runner(std::weak_ptr<std::function<void()>> &&runner,
@@ -57,6 +58,11 @@ void compose::add_handler(
     const std::string &command,
     std::weak_ptr<std::function<void(jsonio::json &&)>> &&handler) {
   handlers_[command].emplace_back(std::move(handler));
+}
+
+void compose::set_ticker(std::size_t index,
+                         const std::chrono::milliseconds &interval) {
+  tickers_[index].second[1] = interval;
 }
 
 bool compose::need_reload() const { return reload_; }

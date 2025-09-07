@@ -18,14 +18,15 @@ public:
   compose(const std::filesystem::path &pipe_path);
   ~compose();
   void run(const std::chrono::milliseconds &nap_time);
+  std::size_t add_ticker(std::weak_ptr<std::function<void()>> &&ticker,
+                         const std::chrono::milliseconds &interval);
   void add_reloader(std::weak_ptr<std::function<void()>> &&reloader);
-  void add_ticker(std::weak_ptr<std::function<void()>> &&ticker,
-                  const std::chrono::milliseconds &interval);
   void add_runner(std::weak_ptr<std::function<void()>> &&runner,
                   const std::chrono::milliseconds &timeout);
   void
   add_handler(const std::string &command,
               std::weak_ptr<std::function<void(jsonio::json &&)>> &&handler);
+  void set_ticker(std::size_t index, const std::chrono::milliseconds &interval);
   bool need_reload() const;
   bool need_stop() const;
   void request_reload();
